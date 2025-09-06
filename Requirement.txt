@@ -1,0 +1,35 @@
+import telegram
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+
+# Replace with your bot token
+BOT_TOKEN = "7957456180:AAGXvYocwu_PV7SxCxeAx5wuM83zjELX0lw"
+
+def start(update, context):
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Hello! Send me some text, and I'll upload it to a file.")
+
+def text_handler(update, context):
+    user_text = update.message.text
+    file_name = f"user_{update.effective_user.id}.txt"  # Unique file name for each user
+    try:
+        with open(file_name, "w", encoding="utf-8") as f:
+            f.write(user_text)
+
+        context.bot.send_document(chat_id=update.effective_chat.id,
+                                document=open(file_name, 'rb'),
+                                filename=file_name)
+    except Exception as e:
+        context.bot.send_message(chat_id=update.effective_chat.id,
+                                text=f"Error creating/sending file: {e}")
+
+def main():
+    updater = Updater(BOT_TOKEN, use_context=True)
+    dp = updater.dispatcher
+
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(MessageHandler(Filters.text & (~Filters.command), text_handler))  # Listen for text messages (excluding commands)
+
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
